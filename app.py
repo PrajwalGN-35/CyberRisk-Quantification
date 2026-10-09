@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import copy
 
@@ -601,7 +601,7 @@ with overview[3]:
     if opt.get("selected_investments"):
         selected_df = pd.DataFrame(opt["selected_investments"])
         st.progress(min(1.0, selected_cost / max(budget, 1.0)), text=f"Budget utilization: {min(100.0, (selected_cost / max(budget, 1.0)) * 100):.0f}%")
-        st.dataframe(selected_df[["name", "asset", "category", "cost", "expected_risk_reduction"]], width="stretch")
+        st.dataframe(selected_df.reindex(columns=["name", "asset", "category", "cost", "expected_risk_reduction"], fill_value=""), width="stretch")
     else:
         st.info("No investments fit under the current budget allocation.")
     st.markdown('</div>', unsafe_allow_html=True)

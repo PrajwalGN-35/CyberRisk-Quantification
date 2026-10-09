@@ -660,9 +660,13 @@ def optimize_investments(
             f"investments[{index}].{reduction_field}",
         )
 
-        # The existing demo expresses expected risk reduction as percentage
-        # points (for example 18 means 18%), while the optimizer expects [0, 1].
-        effectiveness = expected_reduction / 100.0
+        # Accept fractional effectiveness (0.22 means 22%) and legacy
+        # percentage points (22 means 22%). Canonical optimizer inputs use [0, 1].
+        effectiveness = (
+            expected_reduction
+            if 0 <= expected_reduction <= 1
+            else expected_reduction / 100.0
+        )
         if not 0 <= effectiveness <= 1:
             raise ValueError(
                 f"investments[{index}].expected_risk_reduction "

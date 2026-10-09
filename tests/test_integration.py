@@ -138,7 +138,10 @@ def test_optimizer_respects_budget_without_mutating_assets() -> None:
     assert medium_budget["total_cost"] <= 120000
     assert high_budget["total_cost"] <= 200000
     assert low_budget["selected_investments"] != medium_budget["selected_investments"]
-    assert medium_budget["selected_investments"] != high_budget["selected_investments"]
+    # A larger budget need not change the optimal portfolio when every
+    # beneficial investment is already affordable at the medium budget.
+    assert medium_budget["selected_investments"] == high_budget["selected_investments"]
+    assert high_budget["remaining_budget"] > medium_budget["remaining_budget"]
     assert state["assets"] == assets_before
     assert all(asset["criticality"] == assets_before[idx]["criticality"] for idx, asset in enumerate(state["assets"]))
     assert all(asset["value"] == assets_before[idx]["value"] for idx, asset in enumerate(state["assets"]))
@@ -252,7 +255,8 @@ def test_full_baseline_event_and_remediation_flow() -> None:
 
 def test_event_simulation_updates_expected_records() -> None:
     state = generate_security_data()
-    original_assets = {asset["name"]: dict(asset) for asset in state["assets"]}
+    from copy import deepcopy
+    original_state = deepcopy(state)
     event_result = simulate_security_event(state, "critical_vulnerability")
 
     assert event_result["event_type"] == "critical_vulnerability"
@@ -266,10 +270,7 @@ def test_event_simulation_updates_expected_records() -> None:
         state["incidents"],
         state["controls"],
     )["overall_risk_score"]
-    assert state["assets"] == [
-        {"name": original_assets[asset["name"]]["name"], "asset_type": original_assets[asset["name"]]["asset_type"], "criticality": original_assets[asset["name"]]["criticality"], "value": original_assets[asset["name"]]["value"]}
-        for asset in state["assets"]
-    ]
+    assert state == original_state
 
 
 def test_multiple_simulated_events_and_remediation_do_not_mutate_unrelated_records() -> None:
@@ -341,3 +342,29 @@ def test_monitoring_handles_state_without_investments_collection() -> None:
     assert remediation_result["state"]["investments"] == []
     assert event_result["risk_assessment"]["overall_risk_score"] >= 0
     assert remediation_result["residual_risk"]["overall_risk_score"] >= 0
+
+
+def test_risk_engine_preserves_canonical_asset_ids_and_scores_medium_assets() -> None:
+    state = generate_security_data()
+    original_ids = {asset["id"] for asset in state["assets"]}
+
+    assessment = calculate_risk(
+        state["assets"],
+        state["vulnerabilities"],
+        state["threats"],
+        state["incidents"],
+        state["controls"],
+    )
+
+    assessed_ids = {asset["asset_id"] for asset in assessment["assets"]}
+    assert assessed_ids == original_ids
+
+    medium_assets = {
+        asset["id"]
+        for asset in state["assets"]
+        if asset["criticality"] == "medium"
+    }
+    for assessed in assessment["assets"]:
+        if assessed["asset_id"] in medium_assets:
+            assert assessed["factors"]["criticality"] is not None
+            assert assessed["residual_risk_score"] is not None

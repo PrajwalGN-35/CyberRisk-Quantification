@@ -35,6 +35,7 @@ _CATEGORIES = (
 _LABELS = {
     "low": 0.0,
     "moderate": 25.0,
+    "medium": 25.0,
     "high": 50.0,
     "critical": 75.0,
 }
@@ -224,7 +225,11 @@ def calculate_risk(
             if not isinstance(asset, dict):
                 continue
             name = _first_nonempty(asset, ("name", "asset_name"))
-            identifier = _asset_id(asset.get("asset_id"))
+            # Prefer explicit canonical identifiers from either supported schema.
+            identifier = _asset_id(asset.get("asset_id")) or _asset_id(asset.get("id"))
+            if identifier is not None:
+                # Normalize either supported input schema to the canonical field.
+                asset["asset_id"] = identifier
             if identifier is None and name is not None:
                 # Stable synthetic identifier for legacy name-based records.
                 identifier = "legacy:" + name.strip().casefold()
