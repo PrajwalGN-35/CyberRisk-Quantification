@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+streamlit
+pandas
+numpy
+scipy
+pydantic
+python-dotenv
+pytest
