@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 
 import copy
 
@@ -384,7 +385,7 @@ def _build_orchestration_trace(
 
 def _backend_health() -> dict:
     try:
-        response = httpx.get("http://localhost:8000/health", timeout=1.5)
+        response = httpx.get(f"{os.getenv('CYBERRISK_API_URL', 'http://localhost:8000').rstrip('/')}/health", timeout=1.5)
         if response.status_code == 200:
             payload = response.json()
             return {"status": payload.get("status", "healthy"), "service": payload.get("service", "cyberrisk-api")}
