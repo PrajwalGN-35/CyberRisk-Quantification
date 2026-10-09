@@ -110,3 +110,11 @@ The current implementation prefers a deterministic fallback explanation engine s
 - The project intentionally uses synthetic data and not real breach probability calibration.
 - The app is designed for product-style demonstration and educational use rather than production-grade telemetry ingestion.
 - The AI analyst is fallback-grounded and deterministic unless an external provider is later configured intentionally.
+- Contributors
+PRAJWAL G N
+
+MANOJ M N
+
+LIKHITH GOWDA P
+
+S KUNDHAN RAO PAWAR
