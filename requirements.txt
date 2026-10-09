@@ -7,3 +7,4 @@ scipy
 pydantic
 python-dotenv
 pytest
+httpx
